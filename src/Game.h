@@ -12,12 +12,20 @@ class Game
   bool init();
   void update(float dt);
   void render();
-  void mouseClicked(sf::Event event);
+  void mouseButtonPressed(sf::Event event);
+  void mouseButtonReleased(sf::Event event);
   void keyPressed(sf::Event event);
+  void dragSprite(sf::Sprite* sprite);
   void newAnimal();
+  bool checkAccept();
 
  private:
   sf::RenderWindow& window;
+
+  sf::Sprite background;
+  sf::Texture background_texture;
+
+  sf::Sprite* dragged = nullptr;
 
   sf::Sprite* character;
   sf::Sprite* passport;
@@ -28,8 +36,15 @@ class Game
   sf::Sprite accept_button;
   sf::Sprite reject_button;
 
+
+
   sf::Texture accept_texture;
   sf::Texture reject_texture;
+
+
+
+  sf::Texture accept_stamp_texture;
+  sf::Texture reject_stamp_texture;
 
   sf::Font font;
 
@@ -40,9 +55,15 @@ class Game
   bool play_selected = true;
   bool in_menu = true;
 
-  enum critter_id { PENGUIN = 0, MOOSE, ELEPHANT };
-  int character_id;
-  int passport_id;
+  bool passport_accepted = false;
+  bool passport_rejected = false;
+
+  bool should_accept = false;
+
+  bool show_button_context = false;
+
+  sf::Vector2f drag_offset = { 50.0f, 50.0f };
+  sf::Vector2f stamp_offset = { 0.0f, 0.0f };
 };
 
 #endif // PLATFORMER_GAME_H

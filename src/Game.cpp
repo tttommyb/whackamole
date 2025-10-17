@@ -48,6 +48,9 @@ bool Game::init()
 	quit_text.setPosition(window.getSize().x / 2 - quit_text.getGlobalBounds().width / 2 + 125, window.getSize().y / 2 - quit_text.getGlobalBounds().height / 2);
 
 
+	background_texture.loadFromFile("../Data/WhackaMole Worksheet/background.png");
+	background.setTexture(background_texture);
+
 	passports[0].loadFromFile("../Data/Critter Crossing Customs/penguin passport.png");
 	passports[1].loadFromFile("../Data/Critter Crossing Customs/moose passport.png");
 	passports[2].loadFromFile("../Data/Critter Crossing Customs/elephant passport.png");
@@ -60,28 +63,27 @@ bool Game::init()
 	accept_texture.loadFromFile("../Data/Critter Crossing Customs/accept button.png");
 	reject_texture.loadFromFile("../Data/Critter Crossing Customs/reject button.png");
 
+	accept_stamp_texture.loadFromFile("../Data/Critter Crossing Customs/accept.png");
+	reject_stamp_texture.loadFromFile("../Data/Critter Crossing Customs/reject.png");
+
+
+	accept_button.setTexture(accept_texture);
+	reject_button.setTexture(reject_texture);
+
+	accept_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 - 100);
+	reject_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 + 50);
+
 	character = new sf::Sprite;
 	passport = new sf::Sprite;
 
-	character_id = static_cast<critter_id>(rand() % 2);
-	passport_id = static_cast<critter_id>(rand() % 2);
+	newAnimal();
 
-	character->setTexture(animals[character_id]);
-	character->setPosition(100, 100);
-	character->setScale(1.5, 1.5);
-
-	passport->setTexture(passports[passport_id]);
-	passport->setScale(0.75, 0.75);
-	passport->setPosition(window.getSize().x - passport->getGlobalBounds().width - 100, 100);
-
-
-
-  return true;
+	return true;
 }
 
 void Game::update(float dt)
 {
-
+	dragSprite(dragged);
 }
 
 void Game::render()
@@ -93,17 +95,21 @@ void Game::render()
 	}
 	else 
 	{
+		window.draw(background);
 		window.draw(*character);
 		window.draw(*passport);
+		if(show_button_context || passport_rejected)
+		{
+			window.draw(reject_button);
+		}
+		if (show_button_context || passport_accepted) 
+		{
+			window.draw(accept_button);
+
+		}
+
+		
 	}
-}
-
-void Game::mouseClicked(sf::Event event)
-{
-  //get the click position
-  sf::Vector2i click = sf::Mouse::getPosition(window);
-
-
 }
 
 void Game::keyPressed(sf::Event event)
@@ -139,13 +145,142 @@ void Game::keyPressed(sf::Event event)
 			window.close();
 		}
 	}
+
 }
 
 void Game::newAnimal()
 {
-	passport
+	passport_accepted = false;
+	passport_rejected = false;
+
+	int animal_index = rand() % 3;
+	int passport_index = rand() % 3;
+
+	if (animal_index == passport_index) 
+	{
+		should_accept = true;
+	}
+	else
+	{
+		should_accept = false;
+	}
+
+	character->setTexture(animals[animal_index], true);
+	character->setScale(1.8, 1.8);
+	character->setPosition(window.getSize().x / 12, window.getSize().y / 12);
+
+
+	passport->setTexture(passports[passport_index]);
+	passport->setScale(0.6, 0.6);
+	passport->setPosition(window.getSize().x / 2, window.getSize().y / 3);
+}
+
+void Game::dragSprite(sf::Sprite* sprite) 
+{
+	if(sprite != nullptr)
+	{
+		sf::Vector2i mouse_position = sf::Mouse::getPosition(window);
+		sf::Vector2f mouse_positionf = static_cast<sf::Vector2f>(mouse_position);
+
+		sf::Vector2f drag_position = mouse_positionf - drag_offset;
+		sprite->setPosition(drag_position.x, drag_position.y);
+
+		if(passport_accepted)
+		{
+			accept_button.setPosition(drag_position - stamp_offset);
+		}
+		if (passport_rejected)
+		{
+			reject_button.setPosition(drag_position - stamp_offset);
+		}
+
+
+	}
 }
 
 
+void Game::mouseButtonPressed(sf::Event event)
+{
+	if (event.mouseButton.button == sf::Mouse::Left)
+	{
+		sf::Vector2i click = sf::Mouse::getPosition(window);
+		sf::Vector2f clickf = static_cast<sf::Vector2f>(click);
 
+		if (passport->getGlobalBounds().contains(clickf)) 
+		{
+			dragged = passport;
+		}
 
+		if(show_button_context)
+		{
+			show_button_context = false;
+
+			if(accept_button.getGlobalBounds().contains(clickf))
+			{
+				passport_accepted = true;
+				stamp_offset = passport->getPosition() - accept_button.getPosition();
+				accept_button.setTexture(accept_stamp_texture);
+				return;
+			}
+
+			else if (reject_button.getGlobalBounds().contains(clickf))
+			{
+				passport_rejected = true;
+				stamp_offset = passport->getPosition() - reject_button.getPosition();
+				reject_button.setTexture(reject_stamp_texture);
+
+				return;
+			}
+			
+		}
+	}
+
+	if (event.mouseButton.button == sf::Mouse::Right)
+	{
+		sf::Vector2i click = sf::Mouse::getPosition(window);
+		sf::Vector2f clickf = static_cast<sf::Vector2f>(click);
+
+		if (passport->getGlobalBounds().contains(clickf) && (passport_accepted == passport_rejected))
+		{
+			show_button_context = true;
+
+			accept_button.setPosition(clickf);
+			reject_button.setPosition(clickf);
+			reject_button.setPosition(clickf + sf::Vector2f(0 , 150.0f));
+		}
+		else {
+			show_button_context = false;
+		}
+	}
+}
+
+void Game::mouseButtonReleased(sf::Event event)
+{
+	
+	if (passport_accepted || passport_rejected) 
+	{
+		sf::Vector2i release_position = sf::Mouse::getPosition(window);
+		sf::Vector2f release_positionf = static_cast<sf::Vector2f>(release_position);
+
+		if(character->getGlobalBounds().contains(release_positionf))
+		{
+			if(checkAccept())
+			{
+				std::cout << "CORRECT!";
+			}
+			else {
+				std::cout << "WRONG!";
+
+			}
+			accept_button.setTexture(accept_texture);
+			reject_button.setTexture(reject_texture);
+			newAnimal();
+		}
+	}
+	dragged = nullptr;
+}
+
+bool Game::checkAccept()
+{
+	return(should_accept == passport_accepted);
+}
