@@ -8,14 +8,14 @@ class Game
 {
  public:
   Game(sf::RenderWindow& window);
-  ~Game();
+  ~Game() = default;
   bool init();
   void update(float dt);
   void render();
   void mouseButtonPressed(sf::Event event);
   void mouseButtonReleased(sf::Event event);
   void keyPressed(sf::Event event);
-  void dragSprite(sf::Sprite* sprite);
+  void dragSprite(sf::Sprite& sprite);
   void newAnimal();
   bool checkAccept();
 
@@ -27,11 +27,11 @@ class Game
 
   sf::Sprite* dragged = nullptr;
 
-  sf::Sprite* character;
-  sf::Sprite* passport;
+  std::unique_ptr<sf::Sprite> character;
+  std::unique_ptr<sf::Sprite> passport;
 
-  sf::Texture* animals = new sf::Texture[3];
-  sf::Texture* passports = new sf::Texture[3];
+  std::vector<std::unique_ptr<sf::Texture>> animals;
+  std::vector<std::unique_ptr<sf::Texture>> passports;
 
   sf::Sprite accept_button;
   sf::Sprite reject_button;

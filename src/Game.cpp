@@ -8,13 +8,6 @@ Game::Game(sf::RenderWindow& game_window)
   srand(time(NULL));
 }
 
-Game::~Game()
-{
-	delete[] animals;
-	delete[] passports;
-	delete character;
-	delete passport;
-}
 
 bool Game::init()
 {
@@ -51,15 +44,21 @@ bool Game::init()
 	background_texture.loadFromFile("../Data/WhackaMole Worksheet/background.png");
 	background.setTexture(background_texture);
 
-	passports[0].loadFromFile("../Data/Critter Crossing Customs/penguin passport.png");
-	passports[1].loadFromFile("../Data/Critter Crossing Customs/moose passport.png");
-	passports[2].loadFromFile("../Data/Critter Crossing Customs/elephant passport.png");
+	passports.push_back(std::make_unique<sf::Texture>());
+	passports.back()->loadFromFile("../Data/Critter Crossing Customs/penguin passport.png");
+	passports.push_back(std::make_unique<sf::Texture>());
+	passports.back()->loadFromFile("../Data/Critter Crossing Customs/moose passport.png");
+	passports.push_back(std::make_unique<sf::Texture>());
+	passports.back()->loadFromFile("../Data/Critter Crossing Customs/elephant passport.png");
 
 
-	animals[0].loadFromFile("../Data/Critter Crossing Customs/penguin.png");
-	animals[1].loadFromFile("../Data/Critter Crossing Customs/moose.png");
-	animals[2].loadFromFile("../Data/Critter Crossing Customs/elephant.png");
-	
+	animals.push_back(std::make_unique<sf::Texture>());
+	animals.back()->loadFromFile("../Data/Critter Crossing Customs/penguin.png");
+	animals.push_back(std::make_unique<sf::Texture>());
+	animals.back()->loadFromFile("../Data/Critter Crossing Customs/moose.png");
+	animals.push_back(std::make_unique<sf::Texture>());
+	animals.back()->loadFromFile("../Data/Critter Crossing Customs/elephant.png");
+
 	accept_texture.loadFromFile("../Data/Critter Crossing Customs/accept button.png");
 	reject_texture.loadFromFile("../Data/Critter Crossing Customs/reject button.png");
 
@@ -73,8 +72,8 @@ bool Game::init()
 	accept_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 - 100);
 	reject_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 + 50);
 
-	character = new sf::Sprite;
-	passport = new sf::Sprite;
+	character = std::make_unique<sf::Sprite>();
+	passport = std::make_unique<sf::Sprite>();
 
 	newAnimal();
 
@@ -83,7 +82,8 @@ bool Game::init()
 
 void Game::update(float dt)
 {
-	dragSprite(dragged);
+	if (dragged == nullptr) { return; }
+	dragSprite(*dragged);
 }
 
 void Game::render()
@@ -165,25 +165,24 @@ void Game::newAnimal()
 		should_accept = false;
 	}
 
-	character->setTexture(animals[animal_index], true);
+	character->setTexture(*animals.at(animal_index), true);
 	character->setScale(1.8, 1.8);
 	character->setPosition(window.getSize().x / 12, window.getSize().y / 12);
 
 
-	passport->setTexture(passports[passport_index]);
+	passport->setTexture(*passports.at(passport_index));
 	passport->setScale(0.6, 0.6);
 	passport->setPosition(window.getSize().x / 2, window.getSize().y / 3);
 }
 
-void Game::dragSprite(sf::Sprite* sprite) 
+void Game::dragSprite(sf::Sprite& sprite)
 {
-	if(sprite != nullptr)
-	{
+	
 		sf::Vector2i mouse_position = sf::Mouse::getPosition(window);
 		sf::Vector2f mouse_positionf = static_cast<sf::Vector2f>(mouse_position);
 
 		sf::Vector2f drag_position = mouse_positionf - drag_offset;
-		sprite->setPosition(drag_position.x, drag_position.y);
+		sprite.setPosition(drag_position.x, drag_position.y);
 
 		if(passport_accepted)
 		{
@@ -194,8 +193,6 @@ void Game::dragSprite(sf::Sprite* sprite)
 			reject_button.setPosition(drag_position - stamp_offset);
 		}
 
-
-	}
 }
 
 
@@ -208,7 +205,8 @@ void Game::mouseButtonPressed(sf::Event event)
 
 		if (passport->getGlobalBounds().contains(clickf)) 
 		{
-			dragged = passport;
+		
+			dragged = passport.get();
 		}
 
 		if(show_button_context)
