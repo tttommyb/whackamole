@@ -26,7 +26,7 @@ bool Game::init()
 		window.getSize().x / 2 - menu_text.getGlobalBounds().width / 2,
 		100);
 
-	play_text.setString("Play");
+	play_text.setString(">Play<");
 	play_text.setFont(font);
 	play_text.setCharacterSize(50);
 	play_text.setFillColor(sf::Color(255, 128, 255, 255));
@@ -40,6 +40,39 @@ bool Game::init()
 	quit_text.setFillColor(sf::Color(255, 128, 255, 255));
 	quit_text.setPosition(window.getSize().x / 2 - quit_text.getGlobalBounds().width / 2 + 125, window.getSize().y / 2 - quit_text.getGlobalBounds().height / 2);
 
+	score_text.setString("Score: 0");
+	score_text.setFont(font);
+	score_text.setCharacterSize(35);
+	score_text.setFillColor(sf::Color(0, 0, 0, 255));
+	score_text.setPosition(window.getSize().x - score_text.getGlobalBounds().width - 200, score_text.getGlobalBounds().height );
+
+
+	lives_text.setString("Lives: 3");
+	lives_text.setFont(font);
+	lives_text.setCharacterSize(35);
+	lives_text.setFillColor(sf::Color(255, 0, 0, 255));
+	lives_text.setPosition(window.getSize().x - lives_text.getGlobalBounds().width - 10, lives_text.getGlobalBounds().height);
+
+	timer_text.setString("Time: ");
+	timer_text.setFont(font);
+	timer_text.setCharacterSize(35);
+	timer_text.setFillColor(sf::Color(255, 0, 0, 255));
+	timer_text.setPosition(window.getSize().x - timer_text.getGlobalBounds().width - 500, timer_text.getGlobalBounds().height);
+
+	final_score_text.setString("Score: ");
+	final_score_text.setFont(font);
+	final_score_text.setCharacterSize(50);
+	final_score_text.setFillColor(sf::Color(255, 128, 255, 255));
+	final_score_text.setPosition(window.getSize().x/2 - final_score_text.getGlobalBounds().width/2 , window.getSize().y / 3);
+
+	gameover_text.setString("Gameover!");
+	gameover_text.setFont(font);
+	gameover_text.setCharacterSize(60);
+	gameover_text.setFillColor(sf::Color(255, 0, 0, 255));
+	gameover_text.setPosition(window.getSize().x / 2 - gameover_text.getGlobalBounds().width / 2, window.getSize().y / 4);
+
+
+	
 
 	background_texture.loadFromFile("../Data/WhackaMole Worksheet/background.png");
 	background.setTexture(background_texture);
@@ -82,6 +115,41 @@ bool Game::init()
 
 void Game::update(float dt)
 {
+	if (in_menu) { timer.restart(); }
+	score_text.setString("Score: " + std::to_string(score));
+	lives_text.setString("Lives: " + std::to_string(lives));
+	timer_text.setString("Time: " +  std::to_string(3 - timer.getElapsedTime().asSeconds()).substr(0, 4));
+	if(timer.getElapsedTime().asSeconds() >= 3)
+	{
+		lives--;
+		if (lives <= 0)
+		{
+			game_over = true;
+			final_score_text.setString("Score: " + std::to_string(score));
+			final_score_text.setPosition(window.getSize().x / 2 - final_score_text.getGlobalBounds().width / 2, window.getSize().y - 300);
+			gameover_delay.restart();
+		}
+		newAnimal();
+		timer.restart();
+		dragged = nullptr;
+		show_button_context = false;
+		passport_accepted = false;
+		passport_rejected = false;
+		accept_button.setTexture(accept_texture);
+		reject_button.setTexture(reject_texture);
+	}
+
+	if(game_over)
+	{
+		if (gameover_delay.getElapsedTime().asSeconds() >= 2)
+		{
+			game_over = false;
+			in_menu = true;
+			score = 0;
+			lives = 3;
+		}
+	}
+
 	if (dragged == nullptr) { return; }
 	dragSprite(*dragged);
 }
@@ -95,6 +163,13 @@ void Game::render()
 	}
 	else 
 	{
+		if (game_over)
+		{
+			window.draw(gameover_text);
+			window.draw(final_score_text);
+			
+			return;
+		}
 		window.draw(background);
 		window.draw(*character);
 		window.draw(*passport);
@@ -108,6 +183,11 @@ void Game::render()
 
 		}
 
+		window.draw(score_text);
+		window.draw(lives_text);
+		window.draw(timer_text);
+
+		
 		
 	}
 }
@@ -173,6 +253,8 @@ void Game::newAnimal()
 	passport->setTexture(*passports.at(passport_index));
 	passport->setScale(0.6, 0.6);
 	passport->setPosition(window.getSize().x / 2, window.getSize().y / 3);
+
+	timer.restart();
 }
 
 void Game::dragSprite(sf::Sprite& sprite)
@@ -205,7 +287,7 @@ void Game::mouseButtonPressed(sf::Event event)
 
 		if (passport->getGlobalBounds().contains(clickf)) 
 		{
-		
+			drag_offset = clickf - passport.get()->getPosition();
 			dragged = passport.get();
 		}
 
@@ -262,12 +344,24 @@ void Game::mouseButtonReleased(sf::Event event)
 
 		if(character->getGlobalBounds().contains(release_positionf))
 		{
-			if(checkAccept())
+			
+
+			if (checkAccept())
 			{
 				std::cout << "CORRECT!";
+				score += 100;
 			}
 			else {
 				std::cout << "WRONG!";
+				lives--;
+				if (lives <= 0)
+				{
+					game_over = true;
+					final_score_text.setString(final_score_text.getString() + std::to_string(score));
+					final_score_text.setPosition(window.getSize().x / 2 - final_score_text.getGlobalBounds().width / 2, window.getSize().y - 300);
+					gameover_delay.restart();
+				}
+
 
 			}
 			accept_button.setTexture(accept_texture);
@@ -280,5 +374,6 @@ void Game::mouseButtonReleased(sf::Event event)
 
 bool Game::checkAccept()
 {
-	return(should_accept == passport_accepted);
+
+	return(should_accept == passport_accepted && passport_accepted != passport_rejected);
 }

@@ -36,6 +36,13 @@ class Game
   sf::Sprite accept_button;
   sf::Sprite reject_button;
 
+  sf::Text score_text;
+  int score = 0;
+
+  sf::Text lives_text;
+  int lives = 3;
+
+  sf::Text timer_text;
 
 
   sf::Texture accept_texture;
@@ -52,8 +59,12 @@ class Game
   sf::Text play_text;
   sf::Text quit_text;
 
+  sf::Text gameover_text;
+  sf::Text final_score_text;
+
   bool play_selected = true;
   bool in_menu = true;
+  bool game_over = false;
 
   bool passport_accepted = false;
   bool passport_rejected = false;
@@ -64,6 +75,10 @@ class Game
 
   sf::Vector2f drag_offset = { 50.0f, 50.0f };
   sf::Vector2f stamp_offset = { 0.0f, 0.0f };
+
+  sf::Clock gameover_delay;
+  sf::Clock timer;
+
 };
 
 #endif // PLATFORMER_GAME_H
