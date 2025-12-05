@@ -77,20 +77,8 @@ bool Game::init()
 	background_texture.loadFromFile("../Data/WhackaMole Worksheet/background.png");
 	background.setTexture(background_texture);
 
-	passports.push_back(std::make_unique<sf::Texture>());
-	passports.back()->loadFromFile("../Data/Critter Crossing Customs/penguin passport.png");
-	passports.push_back(std::make_unique<sf::Texture>());
-	passports.back()->loadFromFile("../Data/Critter Crossing Customs/moose passport.png");
-	passports.push_back(std::make_unique<sf::Texture>());
-	passports.back()->loadFromFile("../Data/Critter Crossing Customs/elephant passport.png");
 
 
-	animals.push_back(std::make_unique<sf::Texture>());
-	animals.back()->loadFromFile("../Data/Critter Crossing Customs/penguin.png");
-	animals.push_back(std::make_unique<sf::Texture>());
-	animals.back()->loadFromFile("../Data/Critter Crossing Customs/moose.png");
-	animals.push_back(std::make_unique<sf::Texture>());
-	animals.back()->loadFromFile("../Data/Critter Crossing Customs/elephant.png");
 
 	accept_texture.loadFromFile("../Data/Critter Crossing Customs/accept button.png");
 	reject_texture.loadFromFile("../Data/Critter Crossing Customs/reject button.png");
@@ -105,8 +93,10 @@ bool Game::init()
 	accept_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 - 100);
 	reject_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 + 50);
 
-	character = std::make_unique<sf::Sprite>();
-	passport = std::make_unique<sf::Sprite>();
+	passport_texture.loadFromFile("../Data/Critter Crossing Customs/default passport.png");
+	passport = std::make_unique<sf::Sprite>(passport_texture);
+
+	passport_photo = std::make_unique<Animal>(1, window);
 
 	newAnimal();
 
@@ -119,7 +109,7 @@ void Game::update(float dt)
 	score_text.setString("Score: " + std::to_string(score));
 	lives_text.setString("Lives: " + std::to_string(lives));
 	timer_text.setString("Time: " +  std::to_string(3 - timer.getElapsedTime().asSeconds()).substr(0, 4));
-	if(timer.getElapsedTime().asSeconds() >= 3)
+	if(timer.getElapsedTime().asSeconds() >= 3 && game_over == false)
 	{
 		lives--;
 		if (lives <= 0)
@@ -143,6 +133,7 @@ void Game::update(float dt)
 	{
 		if (gameover_delay.getElapsedTime().asSeconds() >= 2)
 		{
+			final_score_text.setString("Score: ");
 			game_over = false;
 			in_menu = true;
 			score = 0;
@@ -171,8 +162,9 @@ void Game::render()
 			return;
 		}
 		window.draw(background);
-		window.draw(*character);
+		window.draw(character.get()->getSprite());
 		window.draw(*passport);
+		window.draw(passport_photo.get()->getSprite());
 		if(show_button_context || passport_rejected)
 		{
 			window.draw(reject_button);
@@ -233,8 +225,8 @@ void Game::newAnimal()
 	passport_accepted = false;
 	passport_rejected = false;
 
-	int animal_index = rand() % 3;
-	int passport_index = rand() % 3;
+	int animal_index = rand() % 8;
+	int passport_index = rand() % 8;
 
 	if (animal_index == passport_index) 
 	{
@@ -245,26 +237,35 @@ void Game::newAnimal()
 		should_accept = false;
 	}
 
-	character->setTexture(*animals.at(animal_index), true);
-	character->setScale(1.8, 1.8);
-	character->setPosition(window.getSize().x / 12, window.getSize().y / 12);
+	if(character == nullptr)
+	{
+		character = std::make_unique<Animal>(animal_index, window);
+	}
+	else 
+	{
+		character.get()->setTexture(animal_index);
+	}
 
-
-	passport->setTexture(*passports.at(passport_index));
 	passport->setScale(0.6, 0.6);
 	passport->setPosition(window.getSize().x / 2, window.getSize().y / 3);
+	passport_photo.get()->setTexture(passport_index);
+	passport_photo.get()->getSprite().setScale(0.4, 0.4);
+	passport_photo.get()->getSprite().setPosition(passport.get()->getPosition() + photo_offset);
 
 	timer.restart();
 }
 
 void Game::dragSprite(sf::Sprite& sprite)
 {
-	
-		sf::Vector2i mouse_position = sf::Mouse::getPosition(window);
-		sf::Vector2f mouse_positionf = static_cast<sf::Vector2f>(mouse_position);
 
-		sf::Vector2f drag_position = mouse_positionf - drag_offset;
-		sprite.setPosition(drag_position.x, drag_position.y);
+	sf::Vector2i mouse_position = sf::Mouse::getPosition(window);
+	sf::Vector2f mouse_positionf = static_cast<sf::Vector2f>(mouse_position);
+
+	sf::Vector2f drag_position = mouse_positionf - drag_offset;
+	sprite.setPosition(drag_position.x, drag_position.y);
+
+
+	passport_photo.get()->getSprite().setPosition(sprite.getPosition() + photo_offset);
 
 		if(passport_accepted)
 		{
@@ -342,10 +343,8 @@ void Game::mouseButtonReleased(sf::Event event)
 		sf::Vector2i release_position = sf::Mouse::getPosition(window);
 		sf::Vector2f release_positionf = static_cast<sf::Vector2f>(release_position);
 
-		if(character->getGlobalBounds().contains(release_positionf))
+		if(character.get()->getSprite().getGlobalBounds().contains(release_positionf))
 		{
-			
-
 			if (checkAccept())
 			{
 				std::cout << "CORRECT!";

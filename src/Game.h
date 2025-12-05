@@ -3,6 +3,7 @@
 #define PLATFORMER_GAME_H
 
 #include <SFML/Graphics.hpp>
+#include "Animal.h"
 
 class Game
 {
@@ -27,11 +28,11 @@ class Game
 
   sf::Sprite* dragged = nullptr;
 
-  std::unique_ptr<sf::Sprite> character;
-  std::unique_ptr<sf::Sprite> passport;
+  std::unique_ptr<Animal> character = nullptr;
 
-  std::vector<std::unique_ptr<sf::Texture>> animals;
-  std::vector<std::unique_ptr<sf::Texture>> passports;
+  std::unique_ptr<sf::Sprite> passport;
+  sf::Texture passport_texture;
+  std::unique_ptr<Animal> passport_photo = nullptr;
 
   sf::Sprite accept_button;
   sf::Sprite reject_button;
@@ -75,6 +76,7 @@ class Game
 
   sf::Vector2f drag_offset = { 50.0f, 50.0f };
   sf::Vector2f stamp_offset = { 0.0f, 0.0f };
+  sf::Vector2f photo_offset = { 15.0f, 225.0f };
 
   sf::Clock gameover_delay;
   sf::Clock timer;
