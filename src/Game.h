@@ -19,6 +19,7 @@ class Game
   void dragSprite(sf::Sprite& sprite);
   void newAnimal();
   bool checkAccept();
+  void initialiseText(sf::Text& text, std::string string, sf::Font& font, int character_size, sf::Color colour, const sf::Vector2f& position);
 
  private:
   sf::RenderWindow& window;
@@ -54,7 +55,7 @@ class Game
   sf::Texture accept_stamp_texture;
   sf::Texture reject_stamp_texture;
 
-  sf::Font font;
+  sf::Font main_font;
 
   sf::Text menu_text;
   sf::Text play_text;
@@ -76,7 +77,7 @@ class Game
 
   sf::Vector2f drag_offset = { 50.0f, 50.0f };
   sf::Vector2f stamp_offset = { 0.0f, 0.0f };
-  sf::Vector2f photo_offset = { 15.0f, 225.0f };
+  sf::Vector2f photo_offset = { 17.4f, 228.0f };
 
   sf::Clock gameover_delay;
   sf::Clock timer;

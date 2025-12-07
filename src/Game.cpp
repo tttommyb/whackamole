@@ -1,6 +1,8 @@
 
 #include "Game.h"
 #include <iostream>
+#include <chrono>
+#include <cstdlib>
 
 Game::Game(sf::RenderWindow& game_window)
   : window(game_window)
@@ -11,74 +13,37 @@ Game::Game(sf::RenderWindow& game_window)
 
 bool Game::init()
 {
-	srand(time(0));
+	srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
-	if (!font.loadFromFile("../Data/Fonts/OpenSans-Bold.ttf"))
+	if (!main_font.loadFromFile("../Data/Fonts/OpenSans-Bold.ttf"))
 	{
 		std::cout << "font did not load \n";
 	}
 
-	menu_text.setString("Critter Crossing");
-	menu_text.setFont(font);
-	menu_text.setCharacterSize(100);
-	menu_text.setFillColor(sf::Color(255, 128, 255, 255));
-	menu_text.setPosition(
-		window.getSize().x / 2 - menu_text.getGlobalBounds().width / 2,
-		100);
+	//Menu Text
 
-	play_text.setString(">Play<");
-	play_text.setFont(font);
-	play_text.setCharacterSize(50);
-	play_text.setFillColor(sf::Color(255, 128, 255, 255));
-	play_text.setPosition(
-		window.getSize().x / 2 - play_text.getGlobalBounds().width / 2 - 125,
-		window.getSize().y / 2 - play_text.getGlobalBounds().height / 2);
+	initialiseText(menu_text, "Critter Crossing", main_font, 100, sf::Color(255, 128, 255, 255), { window.getSize().x / 2.0f, 100.0f });
 
-	quit_text.setString("Quit");
-	quit_text.setFont(font);
-	quit_text.setCharacterSize(50);
-	quit_text.setFillColor(sf::Color(255, 128, 255, 255));
-	quit_text.setPosition(window.getSize().x / 2 - quit_text.getGlobalBounds().width / 2 + 125, window.getSize().y / 2 - quit_text.getGlobalBounds().height / 2);
+	initialiseText(play_text, ">Play<", main_font, 50, sf::Color(255, 128, 255, 255), { window.getSize().x / 2 - 125.0f, window.getSize().y / 2.0f });
 
-	score_text.setString("Score: 0");
-	score_text.setFont(font);
-	score_text.setCharacterSize(35);
-	score_text.setFillColor(sf::Color(0, 0, 0, 255));
-	score_text.setPosition(window.getSize().x - score_text.getGlobalBounds().width - 200, score_text.getGlobalBounds().height );
+	initialiseText(quit_text, "Quit", main_font, 50, sf::Color(255, 128, 255, 255), { window.getSize().x / 2  + 125.0f, window.getSize().y / 2.0f });
 
+	//Game Text
 
-	lives_text.setString("Lives: 3");
-	lives_text.setFont(font);
-	lives_text.setCharacterSize(35);
-	lives_text.setFillColor(sf::Color(255, 0, 0, 255));
-	lives_text.setPosition(window.getSize().x - lives_text.getGlobalBounds().width - 10, lives_text.getGlobalBounds().height);
+	initialiseText(score_text, "Score: 0", main_font, 35, sf::Color(0, 0, 0, 255), { window.getSize().x - 270.0f, 20.0f});
 
-	timer_text.setString("Time: ");
-	timer_text.setFont(font);
-	timer_text.setCharacterSize(35);
-	timer_text.setFillColor(sf::Color(255, 0, 0, 255));
-	timer_text.setPosition(window.getSize().x - timer_text.getGlobalBounds().width - 500, timer_text.getGlobalBounds().height);
+	initialiseText(lives_text, "Lives: 3", main_font, 35, sf::Color(255, 0, 0, 255), { window.getSize().x - 80.0f, 20.0f});
 
-	final_score_text.setString("Score: ");
-	final_score_text.setFont(font);
-	final_score_text.setCharacterSize(50);
-	final_score_text.setFillColor(sf::Color(255, 128, 255, 255));
-	final_score_text.setPosition(window.getSize().x/2 - final_score_text.getGlobalBounds().width/2 , window.getSize().y / 3);
+	initialiseText(timer_text, "Time: ", main_font, 35, sf::Color(255, 0, 0, 255), { window.getSize().x - 570.0f, 20.0f });
 
-	gameover_text.setString("Gameover!");
-	gameover_text.setFont(font);
-	gameover_text.setCharacterSize(60);
-	gameover_text.setFillColor(sf::Color(255, 0, 0, 255));
-	gameover_text.setPosition(window.getSize().x / 2 - gameover_text.getGlobalBounds().width / 2, window.getSize().y / 4);
+	//Gameover Text
 
+	initialiseText(final_score_text, "Score: ", main_font, 50, sf::Color(255, 128, 255, 255), { window.getSize().x / 2.0f - final_score_text.getGlobalBounds().width / 2.0f , window.getSize().y / 3.0f });
 
-	
+	initialiseText(gameover_text, "Gameover!", main_font, 60, sf::Color(255, 0, 0, 255), { window.getSize().x / 2.0f - gameover_text.getGlobalBounds().width / 2.0f, window.getSize().y / 4.0f });
 
 	background_texture.loadFromFile("../Data/WhackaMole Worksheet/background.png");
 	background.setTexture(background_texture);
-
-
-
 
 	accept_texture.loadFromFile("../Data/Critter Crossing Customs/accept button.png");
 	reject_texture.loadFromFile("../Data/Critter Crossing Customs/reject button.png");
@@ -225,8 +190,14 @@ void Game::newAnimal()
 	passport_accepted = false;
 	passport_rejected = false;
 
+	int match = rand() % 10;
 	int animal_index = rand() % 8;
 	int passport_index = rand() % 8;
+
+	if(match >= 6)
+	{
+		passport_index = animal_index;
+	}
 
 	if (animal_index == passport_index) 
 	{
@@ -249,7 +220,7 @@ void Game::newAnimal()
 	passport->setScale(0.6, 0.6);
 	passport->setPosition(window.getSize().x / 2, window.getSize().y / 3);
 	passport_photo.get()->setTexture(passport_index);
-	passport_photo.get()->getSprite().setScale(0.4, 0.4);
+	passport_photo.get()->getSprite().setScale(80.0f/passport_photo.get()->getSprite().getLocalBounds().width, 110.0f / passport_photo.get()->getSprite().getLocalBounds().height);
 	passport_photo.get()->getSprite().setPosition(passport.get()->getPosition() + photo_offset);
 
 	timer.restart();
@@ -337,7 +308,6 @@ void Game::mouseButtonPressed(sf::Event event)
 
 void Game::mouseButtonReleased(sf::Event event)
 {
-	
 	if (passport_accepted || passport_rejected) 
 	{
 		sf::Vector2i release_position = sf::Mouse::getPosition(window);
@@ -375,4 +345,15 @@ bool Game::checkAccept()
 {
 
 	return(should_accept == passport_accepted && passport_accepted != passport_rejected);
+}
+
+
+void Game::initialiseText(sf::Text& text, std::string string, sf::Font& font, int character_size, sf::Color colour, const sf::Vector2f& position)
+{
+	std::cout << position.x << " " << position.y << "\n";
+	text.setString(string);
+	text.setFont(font);
+	text.setCharacterSize(character_size);
+	text.setFillColor(colour);
+	text.setPosition(position.x - text.getGlobalBounds().width/2, position.y - text.getGlobalBounds().height / 2);
 }
