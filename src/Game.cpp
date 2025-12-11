@@ -42,8 +42,12 @@ bool Game::init()
 
 	initialiseText(gameover_text, "Gameover!", main_font, 60, sf::Color(255, 0, 0, 255), { window.getSize().x / 2.0f - gameover_text.getGlobalBounds().width / 2.0f, window.getSize().y / 4.0f });
 
+	//Background
+
 	background_texture.loadFromFile("../Data/WhackaMole Worksheet/background.png");
 	background.setTexture(background_texture);
+
+	//Stamps
 
 	accept_texture.loadFromFile("../Data/Critter Crossing Customs/accept button.png");
 	reject_texture.loadFromFile("../Data/Critter Crossing Customs/reject button.png");
@@ -51,18 +55,19 @@ bool Game::init()
 	accept_stamp_texture.loadFromFile("../Data/Critter Crossing Customs/accept.png");
 	reject_stamp_texture.loadFromFile("../Data/Critter Crossing Customs/reject.png");
 
-
 	accept_button.setTexture(accept_texture);
 	reject_button.setTexture(reject_texture);
 
 	accept_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 - 100);
 	reject_button.setPosition(window.getSize().x - 300, window.getSize().y / 2 + 50);
 
+	//Passport
 	passport_texture.loadFromFile("../Data/Critter Crossing Customs/default passport.png");
 	passport = std::make_unique<sf::Sprite>(passport_texture);
 
 	passport_photo = std::make_unique<Animal>(1, window);
 
+	//Start
 	newAnimal();
 
 	return true;
@@ -70,13 +75,17 @@ bool Game::init()
 
 void Game::update(float dt)
 {
+	//Update information
 	if (in_menu) { timer.restart(); }
 	score_text.setString("Score: " + std::to_string(score));
 	lives_text.setString("Lives: " + std::to_string(lives));
 	timer_text.setString("Time: " +  std::to_string(3 - timer.getElapsedTime().asSeconds()).substr(0, 4));
+
+	//Timer End
 	if(timer.getElapsedTime().asSeconds() >= 3 && game_over == false)
 	{
 		lives--;
+		//Gameover
 		if (lives <= 0)
 		{
 			game_over = true;
@@ -84,6 +93,7 @@ void Game::update(float dt)
 			final_score_text.setPosition(window.getSize().x / 2 - final_score_text.getGlobalBounds().width / 2, window.getSize().y - 300);
 			gameover_delay.restart();
 		}
+		//Reset
 		newAnimal();
 		timer.restart();
 		dragged = nullptr;
@@ -93,7 +103,7 @@ void Game::update(float dt)
 		accept_button.setTexture(accept_texture);
 		reject_button.setTexture(reject_texture);
 	}
-
+	//End game
 	if(game_over)
 	{
 		if (gameover_delay.getElapsedTime().asSeconds() >= 2)
@@ -112,6 +122,7 @@ void Game::update(float dt)
 
 void Game::render()
 {
+	//Draw Menu
 	if (in_menu) {
 		window.draw(menu_text);
 		window.draw(play_text);
@@ -119,6 +130,7 @@ void Game::render()
 	}
 	else 
 	{
+		//Draw Game over screen
 		if (game_over)
 		{
 			window.draw(gameover_text);
@@ -126,6 +138,7 @@ void Game::render()
 			
 			return;
 		}
+		//Draw Game
 		window.draw(background);
 		window.draw(character.get()->getSprite());
 		window.draw(*passport);
@@ -194,6 +207,7 @@ void Game::newAnimal()
 	int animal_index = rand() % 8;
 	int passport_index = rand() % 8;
 
+	//Randomly decide whether it should be a match or not in order to fairly distrubute the weighting otherwise most animals would not match the passport
 	if(match >= 6)
 	{
 		passport_index = animal_index;
@@ -217,6 +231,7 @@ void Game::newAnimal()
 		character.get()->setTexture(animal_index);
 	}
 
+	//Update passport
 	passport->setScale(0.6, 0.6);
 	passport->setPosition(window.getSize().x / 2, window.getSize().y / 3);
 	passport_photo.get()->setTexture(passport_index);

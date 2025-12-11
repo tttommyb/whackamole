@@ -2,7 +2,7 @@
 
 Animal::Animal(const int& texture_id, sf::RenderWindow& window)
 {
-
+	//Give the animal access to all textures
 	textures.push_back(std::make_unique<sf::Texture>());
 	textures.back()->loadFromFile("../Data/Critter Crossing Customs/penguin.png");
 	textures.push_back(std::make_unique<sf::Texture>());
