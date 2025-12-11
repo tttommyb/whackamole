@@ -27,11 +27,14 @@ class Game
   sf::Sprite background;
   sf::Texture background_texture;
 
+  //Stores the sprite being dragged by the player
   sf::Sprite* dragged = nullptr;
 
+  //Points to the animal which the player is checking 
   std::unique_ptr<Animal> character = nullptr;
 
-  std::unique_ptr<sf::Sprite> passport;
+  //Passport
+  std::unique_ptr<sf::Sprite> passport; 
   sf::Texture passport_texture;
   std::unique_ptr<Animal> passport_photo = nullptr;
 
@@ -57,6 +60,7 @@ class Game
 
   sf::Font main_font;
 
+  //Text
   sf::Text menu_text;
   sf::Text play_text;
   sf::Text quit_text;
@@ -75,6 +79,7 @@ class Game
 
   bool show_button_context = false;
 
+  //Drag offsets
   sf::Vector2f drag_offset = { 50.0f, 50.0f };
   sf::Vector2f stamp_offset = { 0.0f, 0.0f };
   sf::Vector2f photo_offset = { 17.4f, 228.0f };
